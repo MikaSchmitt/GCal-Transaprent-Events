@@ -9,22 +9,19 @@
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker":"background.js"
   },
   "action": {
     "default_icon": "icon_16.png"
   },
   "oauth2": {
-    "client_id": "",
-    "scopes":[""]
-  },
-  "oauth2": {
     "client_id": "35905430505-4t6dea16au28vjtu3lac1dtj906kna5g.apps.googleusercontent.com",
-    "scopes": ["https://www.googleapis.com/auth/calendar.events.readonly"],
+    "scopes": ["openid","profile","https://www.googleapis.com/auth/calendar.events.readonly","https://www.googleapis.com/auth/calendar.readonly"],
     "redirect_uri": "https://eoioodphacegcnaodjgjmdabhgghfmga.chromiumapp.org"
   },
   "permissions":[
-    "identity"
+    "identity",
+    "storage"
   ],
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjUm8IYHVRTEpqFwQ19IJ0elnL+OqgqG/Nc6FDta8P8aqMDJRgT5wXivUyTqhepgdFayJJTslVuQ5OytTAa4rmk+IESrjM7fEANz3H4j4SLNF5e3+UCa6Dnr/uGOv2Ei9Vh+p1RSdi7a1g6gs3ZgK1hEQ+AUNNM0TDVQErY5pgtpjfnUOoGekRQp95NkrheVpji62GEDGaTDKl7p6J9GdEuW8pthEvoiH+bk7XexGQAf7h41cOwxpqDMTl3kUktmNgtBiQIdVL5t+J/ZTF/3FvxW4H0pofJqL6QGn5TLb0r74Xy74rm0TM1P8z96YZFbKJOaDUaG1sqXDhcilo4fIDwIDAQAB"
  }

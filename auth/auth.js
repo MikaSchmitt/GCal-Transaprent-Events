@@ -1,6 +1,6 @@
 var auth_url = 'https://accounts.google.com/o/oauth2/auth?';
-var client_id = '35905430505-4t6dea16au28vjtu3lac1dtj906kna5g.apps.googleusercontent.com';  // must be Web Application type
-var redirect_url = chrome.identity.getRedirectURL(); // make sure to define Authorised redirect URIs in the Google Console such as https://<-your-extension-ID->.chromiumapp.org/
+var client_id = '35905430505-4t6dea16au28vjtu3lac1dtj906kna5g.apps.googleusercontent.com';
+var redirect_url = chrome.identity.getRedirectURL();
 
 var auth_params = {
     client_id: client_id,
@@ -23,6 +23,6 @@ chrome.identity.launchWebAuthFlow({url: auth_url, interactive: true}, function(r
     }         
     var token = new URLSearchParams(url.hash.substring(1)).get('access_token');
     chrome.storage.local.set({ "authToken": token }, function(){
-        console.log(`aquired and stored token: ${token}`);
+        console.log(`aquired and stored token`);
     });
 });

@@ -1,122 +1,143 @@
-//console.log("Working")
+// init
+console.log("authenticating...")
+authenticate()
+
 
 /*
-(async () => {
-	const src = "https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js";
-	const contentMain = await import(src);
-	contentMain.createAuth0Client({
-		domain: 'https://accounts.google.com/o/oauth2/v2/auth',
-		clientId: '793561486455-oi61g7ie3tipf0fqedtsl97shflup6nr.apps.googleusercontent.com'
-	  });
-  })();*/
-
-  
-/*
-async function auth()
-{
-	let myModule = await import("./cdn.auth0.com_js_auth0-spa-js_2.0_auth0-spa-js.production.js")
-	console.log(myModule)
-}
-
-auth()
-*/
-
-//"resources": ["./cdn.auth0.com_js_auth0-spa-js_2.0_auth0-spa-js.production.js"]
-
-//Authenticate();
-
-function Authenticate() {
-	const AuthURL = "https://accounts.google.com/o/oauth2/v2/auth";
-	const ClientId = "35905430505-4t6dea16au28vjtu3lac1dtj906kna5g.apps.googleusercontent.com";
-	const RedirectURL = "https://eoioodphacegcnaodjgjmdabhgghfmga.chromiumapp.org";
-	const Scope = "https://www.googleapis.com/auth/calendar.events.readonly";
-
-    // Generate a random code verifier and code challenge
-    const codeVerifier = generateRandomCodeVerifier();
-	//const codeChallenge = generateCodeChallenge(codeVerifier);
-	const codeChallenge = "CDqr_qbP7uHb3gOOiP_aAgBlp2fKFIT4nZeRvJVaymQ";
-    // Save the code verifier in a secure way, e.g., in a variable or local storage
-    localStorage.setItem("codeVerifier", codeVerifier);
-
-    // Construct the Google OAuth authorization URL with PKCE parameters
-    const authorizationUrl = `${AuthURL}?client_id=${ClientId}&redirect_uri=${RedirectURL}&response_type=code&scope=${Scope}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
-	
-	console.log(codeChallenge);
-	console.log(authorizationUrl);
-    // Open the authorization URL in a new window or tab
-    window.open(authorizationUrl, "_blank");
-};
-
-// Function to generate a random code verifier
-function generateRandomCodeVerifier() {
-    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
-    const verifierLength = 64;
-    let codeVerifier = "";
-    for (let i = 0; i < verifierLength; i++) {
-        const randomIndex = Math.floor(Math.random() * charset.length);
-        codeVerifier += charset[randomIndex];
-    }
-    return codeVerifier;
-}
-
-// Function to generate a code challenge from the code verifier
-async function generateCodeChallenge(codeVerifier) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(codeVerifier);
-    const buffer = await crypto.subtle.digest("SHA-256", data);
-	console.log(buffer);
-	let uint8arr = new Uint8Array(buffer);
-	console.log(uint8arr);
-	let base64arr = base64URLEncode(new Uint8Array(buffer));
-	console.log(base64arr);
-    return base64arr;
-}
-
-// Function to URL-safe Base64 encode
-function base64URLEncode(data) {
-    return btoa(String.fromCharCode.apply(null, data))
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
-}
-
-Authenticate();
-
 document.addEventListener('click', function() {
 	console.log("click")
-	maketransparent()
+	setTimeout(function(){
+		maketransparent()
+	},200)
 }, false);
 console.log("Added Event Listeners")
+*/
 
-function maketransparent(){
-	// get all Event Elements
-	var arr = document.getElementsByClassName("NlL62b EfQccc elYzab-cXXICe-Hjleke EiZ8Dd afiDFd")
+// when the searchbar exists it can be assumed that the window has loaded fully
+const initInterval = setInterval(() => {
+	const meetingWithSearchBox = document.querySelectorAll("[role=search]");
+	if (meetingWithSearchBox.length) {
+	  setInterval(checkForChanges, 500);
+	  clearInterval(initInterval);
+	}
+  }, 500);
 
-	for(let i = 0 ; i < arr.length ; i++){
-		
-		// check if transparent
-		if(arr[i].style.backgroundColor == "transparent")
-			continue
-		
-		// check if free
-		
-		
-		// remove blue bar
-		var bar = arr[i].getElementsByClassName("uXJUmd")
-		if (bar.length) bar[0].style.backgroundColor = "transparent"
-		
-		// make outline
-		arr[i].style.outlineStyle = "dotted";
-		arr[i].style.outlineColor = arr[i].style.backgroundColor
-		arr[i].style.outlineOffset = "-3px"
-		
-		// make transaprent
-		arr[i].style.backgroundColor = "transparent"
-		
-		// change Text Color
-		var name = arr[i].getElementsByClassName("FAxxKc")
-		if (name.length) name[0].style.color = "black"
-		var details = arr[i].getElementsByClassName("Jmftzc gVNoLb  EiZ8Dd TuM9nf")
-		if (details.length) details[0].style.color = "black"
+// check every .5 seconds if number of events has changed or another week is displayed
+var prevEvents = 0;
+var prevDateKey = 0;
+function checkForChanges(){
+	var events = document.querySelectorAll("[data-eventchip]");
+	var collums = document.getElementsByClassName("YvjgZe");
+	var DateKey = collums[0].dataset.datekey;
+	if((events.length != prevEvents) || (prevDateKey != DateKey)){
+		prevEvents = events.length;
+		prevDateKey = DateKey;
+		maketransparent();
+	}
+}
+
+async function authenticate(){
+	var items = await chrome.storage.local.get("authToken");
+	if(items){
+		var authToken = items.authToken;
+		var response = await fetch( `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${authToken}`,{})
+		var responseJson = await response.json();
+		if(responseJson["issued_to"] == '35905430505-4t6dea16au28vjtu3lac1dtj906kna5g.apps.googleusercontent.com')
+			if(responseJson["scope"] == 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly')
+				return;
+	}
+	chrome.runtime.sendMessage("auth");
+}
+
+function DateKeytoRFC3339(datekey, offset = 0)
+{
+	if(datekey == "null")
+		return null;
+	var year = Math.trunc(datekey / 512) + 1970;
+	var month = Math.trunc(datekey % 512 / 32);
+	var day = datekey % 32;
+	var date = new Date(year, month-1, day, 0, 0, 0, 0);
+	date.setDate(date.getDate() + offset)
+	return date.toISOString()
+}
+
+async function maketransparent(){
+	var items = await chrome.storage.local.get("authToken");
+	var authToken = items.authToken;
+
+	// get all Event Elements from HTML
+	var events = document.querySelectorAll("[data-eventchip]");
+
+	//check wich calendars need to be fetched
+	var calendarsToFetch = [];
+	for(let i = 0 ; i < events.length ; i++){
+		var EventID = atob(events[i].dataset.eventid);
+		var CalID = EventID.split(" ")[1].replace("@g","@group.calendar.google.com").replace("@i","@import.calendar.google.com").replace("@m","@gmail.com");
+		if(!calendarsToFetch.find((element) => element == CalID))
+			calendarsToFetch.push(CalID);
+	}
+
+	console.log(calendarsToFetch);
+
+	// get range of dates for current view
+	var collums = document.getElementsByClassName("YvjgZe");
+	var firstDateKey = collums[0].dataset.datekey;
+	var lastDateKey = collums[6].dataset.datekey;
+	var timeMin = DateKeytoRFC3339(firstDateKey);
+	var timeMax = DateKeytoRFC3339(lastDateKey,1);
+
+	console.log(`timeMin: ${firstDateKey} ${timeMin} timeMax: ${lastDateKey} ${timeMax}`);
+
+	var gCalEvents = [];
+	// fetch all relevant events from gcal
+	let fetch_options = {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${authToken}`,
+			'Content-Type': 'application/json',
+		}
+	};
+	let searchParams = new URLSearchParams({ 
+		orderBy: 'startTime',
+		singleEvents: true,
+		timeMin: timeMin,
+		timeMax: timeMax
+	})
+	for(let i = 0 ; i < calendarsToFetch.length ; i++){
+		var response = await fetch( `https://www.googleapis.com/calendar/v3/calendars/${calendarsToFetch[i]}/events?${searchParams.toString()}`, fetch_options);
+		var data = await response.json();
+		for(let x = 0; x < data['items']['length']; x++)
+			gCalEvents.push(data['items'][x])
+	}
+	console.log(gCalEvents);
+
+	for(let i = 0 ; i < events.length ; i++){
+		let gCalEvent = gCalEvents.find((element) => element['id'] == atob(events[i].dataset.eventid).split(" ")[0]);
+		if(gCalEvent['transparency'] == "transparent"){
+			// check if transparent
+			if(events[i].style.backgroundColor == "white")
+				continue;
+
+			// remove blue bar
+			var bar = events[i].getElementsByClassName("uXJUmd")
+			if(bar.length) bar[0].style.backgroundColor = "transparent"
+			
+			// make outline
+			events[i].style.outlineStyle = "dotted";
+			events[i].style.outlineColor = events[i].style.backgroundColor
+			events[i].style.outlineOffset = "-3px"
+			
+			// make transaprent
+			events[i].style.backgroundColor = "white"
+			
+			// change Text Color
+			var name = events[i].getElementsByClassName("FAxxKc")
+			if (name.length) name[0].style.color = "black"
+			var details = events[i].getElementsByClassName("Jmftzc gVNoLb  EiZ8Dd")
+			if (details.length) details[0].style.color = "black"
+			var details = events[i].getElementsByClassName("Jmftzc K9QN7e  EiZ8Dd TuM9nf")
+			if (details.length) details[0].style.color = "black"
+
+		}
 	}
 }

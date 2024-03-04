@@ -43,10 +43,10 @@ async function authenticate(){
 		var response = await fetch( `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${authToken}`,{})
 		var responseJson = await response.json();
 		if(responseJson["issued_to"] == '35905430505-4t6dea16au28vjtu3lac1dtj906kna5g.apps.googleusercontent.com')
-			if(responseJson["scope"] == 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly')
+			if(responseJson["scope"] == 'https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/calendar.readonly')
 				return;
 	}
-	chrome.runtime.sendMessage("auth");
+	chrome.runtime.sendMessage({type: "getAuthToken"});
 }
 
 function DateKeytoRFC3339(datekey, offset = 0)
@@ -72,7 +72,7 @@ async function maketransparent(){
 	var calendarsToFetch = [];
 	for(let i = 0 ; i < events.length ; i++){
 		var EventID = atob(events[i].dataset.eventid);
-		var CalID = EventID.split(" ")[1].replace("@g","@group.calendar.google.com").replace("@i","@import.calendar.google.com").replace("@m","@gmail.com");
+		var CalID = EventID.split(" ")[1].replace("@g","@group.calendar.google.com").replace("@i","@import.calendar.google.com").replace("@m","@gmail.com").replace("@v","@group.v.calendar.google.com");
 		if(!calendarsToFetch.find((element) => element == CalID))
 			calendarsToFetch.push(CalID);
 	}
@@ -82,7 +82,7 @@ async function maketransparent(){
 	// get range of dates for current view
 	var collums = document.getElementsByClassName("YvjgZe");
 	var firstDateKey = collums[0].dataset.datekey;
-	var lastDateKey = collums[6].dataset.datekey;
+	var lastDateKey = collums[collums.length-1].dataset.datekey;
 	var timeMin = DateKeytoRFC3339(firstDateKey);
 	var timeMax = DateKeytoRFC3339(lastDateKey,1);
 

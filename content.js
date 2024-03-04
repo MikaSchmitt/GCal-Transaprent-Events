@@ -26,9 +26,16 @@ const initInterval = setInterval(() => {
 var prevEvents = 0;
 var prevDateKey = 0;
 function checkForChanges(){
-	var events = document.querySelectorAll("[data-eventchip]");
-	var collums = document.getElementsByClassName("YvjgZe");
-	var DateKey = collums[0].dataset.datekey;
+	// get Calendar Grid
+	var CalendarMainView = document.querySelector("[role=main]");
+	var CalendarGrid = CalendarMainView.querySelector("[role=grid]");
+	// get Date Key from Calendar View
+	var DatePresentation = CalendarGrid.childNodes[0];
+	var DateKey = DatePresentation.dataset.startDateKey;
+	// get visible Events
+	var EventPresentation = CalendarGrid.childNodes[1];
+	var events = EventPresentation.querySelectorAll("[data-eventchip]");
+	// check for changes
 	if((events.length != prevEvents) || (prevDateKey != DateKey)){
 		prevEvents = events.length;
 		prevDateKey = DateKey;
@@ -65,8 +72,12 @@ async function maketransparent(){
 	var items = await chrome.storage.local.get("authToken");
 	var authToken = items.authToken;
 
+	// get Calendar Grid
+	var CalendarMainView = document.querySelector("[role=main]");
+	var CalendarGrid = CalendarMainView.querySelector("[role=grid]");
 	// get all Event Elements from HTML
-	var events = document.querySelectorAll("[data-eventchip]");
+	var EventPresentation = CalendarGrid.childNodes[1];
+	var events = EventPresentation.querySelectorAll("[data-eventchip]");
 
 	//check wich calendars need to be fetched
 	var calendarsToFetch = [];
@@ -80,13 +91,17 @@ async function maketransparent(){
 	console.log(calendarsToFetch);
 
 	// get range of dates for current view
-	var collums = document.getElementsByClassName("YvjgZe");
-	var firstDateKey = collums[0].dataset.datekey;
-	var lastDateKey = collums[collums.length-1].dataset.datekey;
-	var timeMin = DateKeytoRFC3339(firstDateKey);
-	var timeMax = DateKeytoRFC3339(lastDateKey,1);
+	// get Calendar Main View
+	var CalendarMainView = document.querySelector("[role=main]");
+	var CalendarGrid = CalendarMainView.querySelector("[role=grid]");
+	// get Date Key from Calendar View
+	var DatePresentation = CalendarGrid.childNodes[0];
+	var startDateKey = DatePresentation.dataset.startDateKey;
+	var endDateKey = DatePresentation.dataset.endDateKey;
+	var timeMin = DateKeytoRFC3339(startDateKey);
+	var timeMax = DateKeytoRFC3339(endDateKey,1); // offset by one to fully include last day
 
-	console.log(`timeMin: ${firstDateKey} ${timeMin} timeMax: ${lastDateKey} ${timeMax}`);
+	console.log(`timeMin: ${startDateKey} ${timeMin} timeMax: ${endDateKey} ${timeMax}`);
 
 	var gCalEvents = [];
 	// fetch all relevant events from gcal
@@ -119,25 +134,31 @@ async function maketransparent(){
 				continue;
 
 			// remove blue bar
-			var bar = events[i].getElementsByClassName("uXJUmd")
-			if(bar.length) bar[0].style.backgroundColor = "transparent"
+			var bar = events[i].childNodes[0];
+			bar.style.backgroundColor = "transparent";
 			
 			// make outline
 			events[i].style.outlineStyle = "dotted";
-			events[i].style.outlineColor = events[i].style.backgroundColor
-			events[i].style.outlineOffset = "-3px"
+			events[i].style.outlineColor = events[i].style.backgroundColor;
+			events[i].style.outlineOffset = "-3px";
 			
 			// make transaprent
-			events[i].style.backgroundColor = "white"
+			events[i].style.backgroundColor = "white";
 			
 			// change Text Color
-			var name = events[i].getElementsByClassName("FAxxKc")
-			if (name.length) name[0].style.color = "black"
-			var details = events[i].getElementsByClassName("Jmftzc gVNoLb  EiZ8Dd")
-			if (details.length) details[0].style.color = "black"
-			var details = events[i].getElementsByClassName("Jmftzc K9QN7e  EiZ8Dd TuM9nf")
-			if (details.length) details[0].style.color = "black"
-
+			let childs = getChildsRecursively(events[i]);
+			for (child of childs){
+				if(child.innerText != '')
+					child.style.color = "black";
+			}
 		}
 	}
+}
+
+function getChildsRecursively(element) {
+	let childs = [...element.children];
+	for (const child of element.children){
+		childs.push(...getChildsRecursively(child));
+	}
+	return childs;
 }

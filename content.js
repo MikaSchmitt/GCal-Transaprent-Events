@@ -140,12 +140,13 @@ async function maketransparent(){
 
 			// remove blue bar
 			var bar = events[i].childNodes[0];
-			bar.style.backgroundColor = "transparent";
+			bar.style.marginLeft = "-4px";
 			
 			// make outline
 			events[i].style.outlineStyle = "dotted";
 			events[i].style.outlineColor = events[i].style.backgroundColor;
 			events[i].style.outlineOffset = "-3px";
+			events[i].style.marginLeft = "4px";
 			
 			// make transaprent
 			events[i].style.backgroundColor = "white";

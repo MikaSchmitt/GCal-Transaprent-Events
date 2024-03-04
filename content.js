@@ -119,10 +119,15 @@ async function maketransparent(){
 		timeMax: timeMax
 	})
 	for(let i = 0 ; i < calendarsToFetch.length ; i++){
-		var response = await fetch( `https://www.googleapis.com/calendar/v3/calendars/${calendarsToFetch[i]}/events?${searchParams.toString()}`, fetch_options);
-		var data = await response.json();
-		for(let x = 0; x < data['items']['length']; x++)
-			gCalEvents.push(data['items'][x])
+		let nextPageToken = "dummy"
+		while(nextPageToken){
+			var response = await fetch( `https://www.googleapis.com/calendar/v3/calendars/${calendarsToFetch[i]}/events?${searchParams.toString()}`, fetch_options);
+			var data = await response.json();
+			nextPageToken = data['nextPageToken'];
+			searchParams.set("pageToken", nextPageToken);
+			gCalEvents.push(...data['items']);
+		}
+		searchParams.delete("pageToken")
 	}
 	console.log(gCalEvents);
 

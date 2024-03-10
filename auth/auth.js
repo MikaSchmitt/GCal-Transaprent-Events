@@ -23,6 +23,6 @@ chrome.identity.launchWebAuthFlow({url: auth_url, interactive: true}, function(r
     }         
     var token = new URLSearchParams(url.hash.substring(1)).get('access_token');
     chrome.storage.local.set({ "authToken": token }, function(){
-        console.log(`aquired and stored token`);
+        close();
     });
 });

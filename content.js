@@ -97,7 +97,7 @@ function makeEventsTransparent(events, gCalEvents) {
 async function getEventsFromGCal(CalendarGrid) {
 	const authToken = await getAuthToken();
 	const events = getEvents(CalendarGrid);
-	const calendarsToFetch = getCalendars(events);
+	const calendarsToFetch = getCalendarIDs();
 	console.log(calendarsToFetch);
 
 	const { startDate, endDate } = getDateRange(CalendarGrid);
@@ -119,14 +119,14 @@ async function getEventsFromGCal(CalendarGrid) {
 		maxResults: 250
 	});
 	for (let i = 0; i < calendarsToFetch.length; i++) {
-		let nextPageToken = "dummy";
-		while (nextPageToken) {
-			const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarsToFetch[i]}/events?${searchParams.toString()}`, fetch_options);
+		let nextPageToken = null;
+		do {
+			const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarsToFetch[i].replace('#','%23')}/events?${searchParams.toString()}`, fetch_options);
 			const data = await response.json();
 			nextPageToken = data['nextPageToken'];
 			searchParams.set("pageToken", nextPageToken);
 			gCalEvents.push(...data['items']);
-		}
+		} while (nextPageToken != null) 
 		searchParams.delete("pageToken");
 	}
 	return gCalEvents;
@@ -144,15 +144,12 @@ function getEvents(CalendarGrid) {
 	return events;
 }
 
-function getCalendars(events) {
-	var calendarsToFetch = [];
-	for (const event of events) {
-		const EventID = atob(event.dataset.eventid);
-		const CalID = EventID.split(" ")[1].replace("@g", "@group.calendar.google.com").replace("@i", "@import.calendar.google.com").replace("@m", "@gmail.com").replace("@v", "@group.v.calendar.google.com");
-		if (!calendarsToFetch.find((element) => element == CalID))
-			calendarsToFetch.push(CalID);
-	}
-	return calendarsToFetch;
+function getCalendarIDs() {
+	let CalendarList = document.querySelectorAll("[role=complementary]")[0];
+	let Calendars = Array.from(document.querySelectorAll("[role=listitem"));
+	let CalendarsToFetch = Calendars.filter((element) => element.querySelector("[type=checkbox]").checked == true);
+	let CalendarIDs = CalendarsToFetch.map((calendar) => atob(calendar.children[0].dataset.id));
+	return CalendarIDs;
 }
 
 function getDateRange(CalendarGrid) {

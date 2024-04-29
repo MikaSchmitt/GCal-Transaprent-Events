@@ -41,7 +41,7 @@ async function authenticate() {
 	var items = await chrome.storage.local.get("authToken");
 	if (items) {
 		var authToken = items.authToken;
-		var response = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${authToken}`, {})
+		var response = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${authToken}`, {}) //https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=
 		var responseJson = await response.json();
 		if (responseJson["issued_to"] == '35905430505-4t6dea16au28vjtu3lac1dtj906kna5g.apps.googleusercontent.com')
 			if (responseJson["scope"] == 'https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/calendar.readonly')
@@ -67,6 +67,7 @@ function makeEventsTransparent(events, gCalEvents) {
 	for (let i = 0; i < events.length; i++) {
 		const gCalEvent = gCalEvents.find((element) => element['id'] == atob(events[i].dataset.eventid).split(" ")[0]);
 
+		if (gCalEvent == null) continue;
 		if (gCalEvent['transparency'] != "transparent") continue;
 
 		// check if transparent
@@ -121,7 +122,7 @@ async function getEventsFromGCal(CalendarGrid) {
 	for (let i = 0; i < calendarsToFetch.length; i++) {
 		let nextPageToken = null;
 		do {
-			const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarsToFetch[i].replace('#','%23')}/events?${searchParams.toString()}`, fetch_options);
+			const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarsToFetch[i])}/events?${searchParams.toString()}`, fetch_options);
 			const data = await response.json();
 			nextPageToken = data['nextPageToken'];
 			searchParams.set("pageToken", nextPageToken);

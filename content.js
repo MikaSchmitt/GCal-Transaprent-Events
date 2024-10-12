@@ -2,6 +2,21 @@
 console.log("authenticating...")
 authenticate()
 
+//add CSS element into head
+const style = document.createElement("style");
+style.setAttribute("custom-css", "");
+document.head.appendChild(style);
+
+// TODO: make customizable by user
+style.innerHTML = `
+[transparent] {
+  background-image:none;
+  background-color:white !important;
+  border-style:dashed;
+}
+[transparent] * {
+color:black;
+`
 
 /*
 document.addEventListener('click', function() {
@@ -51,9 +66,10 @@ async function authenticate() {
 }
 
 async function maketransparent() {
-	const CalendarGrid = getCalendarGrid();
-	const events = getEvents(CalendarGrid);
+	let CalendarGrid = getCalendarGrid();
 	const gCalEvents = await getEventsFromGCal(CalendarGrid);
+	CalendarGrid = getCalendarGrid(); // BUG: need to fetch Calendar Grid again after fetching events 
+	const events = getEvents(CalendarGrid);
 	makeEventsTransparent(events, gCalEvents);
 }
 
@@ -70,34 +86,14 @@ function makeEventsTransparent(events, gCalEvents) {
 		if (gCalEvent == null) continue;
 		if (gCalEvent['transparency'] != "transparent") continue;
 
-		// check if transparent
-		if (events[i].style.backgroundColor == "white") continue;
-
-		// adjust
-		var bar = events[i].childNodes[0];
-		bar.style.marginLeft = "-4px";
-
-		// make outline
-		events[i].style.outlineStyle = "dotted";
-		events[i].style.outlineColor = events[i].style.backgroundColor;
-		events[i].style.outlineOffset = "-3px";
-		events[i].style.marginLeft = "4px";
-
-		// make transaprent
-		events[i].style.backgroundColor = "white";
-
-		// change Text Color
-		const childs = getChildsRecursively(events[i]);
-		for (const child of childs) {
-			if (child.innerText != '')
-				child.style.color = "black";
-		}
+		// set html atrribute transparent
+		events[i].setAttribute("transparent","");
 	}
 }
 
 async function getEventsFromGCal(CalendarGrid) {
 	const authToken = await getAuthToken();
-	const events = getEvents(CalendarGrid);
+	//const events = getEvents(CalendarGrid);
 	const calendarsToFetch = getCalendarIDs();
 	console.log(calendarsToFetch);
 

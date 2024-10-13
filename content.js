@@ -10,47 +10,45 @@ document.head.appendChild(style);
 // TODO: make customizable by user
 style.innerHTML = `
 [transparent] {
-  background-image:none;
   background-color:white !important;
   border-style:dashed;
 }
 [transparent] * {
-color:black;
+color:black !important;
 `
 
-/*
-document.addEventListener('click', function() {
-	console.log("click")
-	setTimeout(function(){
-		maketransparent()
-	},200)
-}, false);
-console.log("Added Event Listeners")
-*/
-
-// when the searchbar exists it can be assumed that the window has loaded fully
-const initInterval = setInterval(() => {
-	const meetingWithSearchBox = document.querySelectorAll("[role=search]");
-	if (meetingWithSearchBox.length) {
-		setInterval(checkForChanges, 500);
-		clearInterval(initInterval);
-	}
-}, 500);
-
-// check every .5 seconds if number of events has changed or another week is displayed
-var prevEvents = 0;
-var prevDate = 0;
-function checkForChanges() {
-	const CalendarGrid = getCalendarGrid();
-	const { startDate, endDate } = getDateRange(CalendarGrid);
-	const events = getEvents(CalendarGrid);
-	// check for changes
-	if ((events.length != prevEvents) || (prevDate != startDate)) {
-		prevEvents = events.length;
-		prevDate = startDate;
+// Callback function that is executed when mutations are observed
+const callback = (mutationList, observer) => {
+	let buttonDetected = false;
+	for (const mutation of mutationList) {
+	  	// Check if the mutation affects child elements (added or removed)
+	  	if (mutation.type === "childList") {
+			// Iterate over added nodes
+			for (const node of mutation.addedNodes){
+				if (node.nodeType === 1 && node.hasAttribute("data-eventchip")) {
+				  	buttonDetected = true;
+					break;
+				}
+			}
+		}
+  	}
+	// If any button was detected, trigger the debounced handler
+	if (buttonDetected) {
 		maketransparent();
 	}
 }
+  
+// Create a new MutationObserver linked to the callback function
+const observer = new MutationObserver(callback);
+  
+// Options for the observer (which mutations to observe)
+const config = { childList: true, subtree: true };
+  
+// Select the node to observe (e.g., the document body or a specific container)
+const targetNode = document.body;
+  
+// Start observing the target node with the specified configuration
+observer.observe(targetNode, config);
 
 async function authenticate() {
 	var items = await chrome.storage.local.get("authToken");
@@ -68,7 +66,7 @@ async function authenticate() {
 async function maketransparent() {
 	let CalendarGrid = getCalendarGrid();
 	const gCalEvents = await getEventsFromGCal(CalendarGrid);
-	CalendarGrid = getCalendarGrid(); // BUG: need to fetch Calendar Grid again after fetching events 
+	CalendarGrid = getCalendarGrid(); // refresh CalendarGrid in case it was updated
 	const events = getEvents(CalendarGrid);
 	makeEventsTransparent(events, gCalEvents);
 }
@@ -94,7 +92,7 @@ function makeEventsTransparent(events, gCalEvents) {
 async function getEventsFromGCal(CalendarGrid) {
 	const authToken = await getAuthToken();
 	//const events = getEvents(CalendarGrid);
-	const calendarsToFetch = getCalendarIDs();
+	const calendarsToFetch = await getCalendarIDs();
 	console.log(calendarsToFetch);
 
 	const { startDate, endDate } = getDateRange(CalendarGrid);
@@ -141,12 +139,27 @@ function getEvents(CalendarGrid) {
 	return events;
 }
 
-function getCalendarIDs() {
-	let CalendarList = document.querySelectorAll("[role=complementary]")[0];
-	let Calendars = Array.from(document.querySelectorAll("[role=listitem"));
-	let CalendarsToFetch = Calendars.filter((element) => element.querySelector("[type=checkbox]").checked == true);
-	let CalendarIDs = CalendarsToFetch.map((calendar) => atob(calendar.children[0].dataset.id));
-	return CalendarIDs;
+function waitForCalendars() {
+    return new Promise((resolve) => {
+        const interval = setInterval(() => {
+            let Calendars = document.querySelectorAll("[role=listitem]");
+            if (Calendars.length > 0) {
+                clearInterval(interval);
+                resolve(Calendars);
+            }
+        }, 100); // check every 100ms
+    });
+}
+
+async function getCalendarIDs() {
+    // Wait for the calendars to exist
+    let Calendars = await waitForCalendars(); // list might not exist yet
+
+    let CalendarsToFetch = Array.from(Calendars).filter((element) => 
+        element.querySelector("[type=checkbox]").checked == true
+    );
+    let CalendarIDs = CalendarsToFetch.map((calendar) => atob(calendar.children[0].dataset.id));
+    return CalendarIDs;
 }
 
 function getDateRange(CalendarGrid) {

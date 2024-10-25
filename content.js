@@ -10,11 +10,11 @@ document.head.appendChild(style);
 // TODO: make customizable by user
 style.innerHTML = `
 [transparent] {
-  background-color:white !important;
+  background-color:var(--gm3-sys-color-surface) !important;
   border-style:dashed;
 }
 [transparent] * {
-color:black !important;
+color:var(--gm3-sys-color-on-surface) !important;
 `
 
 // Callback function that is executed when mutations are observed

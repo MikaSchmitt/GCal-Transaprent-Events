@@ -10,11 +10,46 @@ document.head.appendChild(style);
 // TODO: make customizable by user
 style.innerHTML = `
 [transparent] {
-  background-color:var(--gm3-sys-color-surface) !important;
-  border-style:dashed;
+	background-color:var(--gm3-sys-color-surface) !important;
+  	outline-style: dashed;
+	outline-offset: -3px;
 }
 [transparent] * {
-color:var(--gm3-sys-color-on-surface) !important;
+	color:var(--gm3-sys-color-on-surface) !important;
+}
+[transparent][style*="background-color: rgb(218, 82, 52)"] {
+    outline-color: rgb(218, 82, 52)!important;
+}
+[transparent][style*="background-color: rgb(214, 131, 122)"] {
+    outline-color: rgb(214, 131, 122)!important;
+}
+[transparent][style*="background-color: rgb(227, 104, 62)"] {
+    outline-color: rgb(227, 104, 62)!important;
+}
+[transparent][style*="background-color: rgb(231, 186, 81)"] {
+    outline-color: rgb(231, 186, 81)!important;
+}
+[transparent][style*="background-color: rgb(85, 176, 128)"] {
+    outline-color: rgb(85, 176, 128)!important;
+}
+[transparent][style*="background-color: rgb(72, 145, 96)"] {
+    outline-color: rgb(72, 145, 96)!important;
+}
+[transparent][style*="background-color: rgb(75, 153, 210)"] {
+    outline-color: rgb(75, 153, 210)!important;
+}
+[transparent][style*="background-color: rgb(110, 114, 195)"] {
+    outline-color: rgb(110, 114, 195)!important;
+}
+[transparent][style*="background-color: rgb(130, 139, 194)"] {
+    outline-color: rgb(130, 139, 194)!important;
+}
+[transparent][style*="background-color: rgb(167, 90, 186)"] {
+    outline-color: rgb(167, 90, 186)!important;
+}
+[transparent][style*="background-color: rgb(124, 124, 124)"] {
+    outline-color: rgb(124, 124, 124)!important;
+}
 `
 
 // Callback function that is executed when mutations are observed

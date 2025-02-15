@@ -17,6 +17,39 @@ style.innerHTML = `
 [transparent] * {
 	color:var(--gm3-sys-color-on-surface) !important;
 }
+[transparent][style*="background-color: rgb(213, 0, 0)"] {
+    outline-color: rgb(213, 0, 0)!important;
+}
+[transparent][style*="background-color: rgb(230, 124, 115)"] {
+    outline-color: rgb(230, 124, 115)!important;
+}
+[transparent][style*="background-color: rgb(244, 81, 30)"] {
+    outline-color: rgb(244, 81, 30)!important;
+}
+[transparent][style*="background-color: rgb(246, 191, 38)"] {
+    outline-color: rgb(246, 191, 38)!important;
+}
+[transparent][style*="background-color: rgb(51, 182, 121)"] {
+    outline-color: rgb(51, 182, 121)!important;
+}
+[transparent][style*="background-color: rgb(11, 128, 67)"] {
+    outline-color: rgb(11, 128, 67)!important;
+}
+[transparent][style*="background-color: rgb(3, 155, 229)"] {
+    outline-color: rgb(3, 155, 229)!important;
+}
+[transparent][style*="background-color: rgb(63, 81, 181)"] {
+    outline-color: rgb(63, 81, 181)!important;
+}
+[transparent][style*="background-color: rgb(121, 134, 203)"] {
+    outline-color: rgb(121, 134, 203)!important;
+}
+[transparent][style*="background-color: rgb(142, 36, 170)"] {
+    outline-color: rgb(142, 36, 170)!important;
+}
+[transparent][style*="background-color: rgb(97, 97, 97)"] {
+    outline-color: rgb(97, 97, 97)!important;
+}
 [transparent][style*="background-color: rgb(218, 82, 52)"] {
     outline-color: rgb(218, 82, 52)!important;
 }
@@ -69,7 +102,12 @@ const callback = (mutationList, observer) => {
   	}
 	// If any button was detected, trigger the debounced handler
 	if (buttonDetected) {
+		performance.mark("buttonDetected");
 		maketransparent();
+
+		performance.measure('Time_to_Calender', 'buttonDetected', 'got Calendars to fetch');
+		performance.measure('Time_to_Events', 'buttonDetected', 'got Events');
+		performance.measure('Time_Transparent', "got Events", 'set transparency');
 	}
 }
   
@@ -101,6 +139,7 @@ async function authenticate() {
 async function maketransparent() {
 	let CalendarGrid = getCalendarGrid();
 	const gCalEvents = await getEventsFromGCal(CalendarGrid);
+	performance.mark("got Events");
 	CalendarGrid = getCalendarGrid(); // refresh CalendarGrid in case it was updated
 	const events = getEvents(CalendarGrid);
 	makeEventsTransparent(events, gCalEvents);
@@ -122,12 +161,14 @@ function makeEventsTransparent(events, gCalEvents) {
 		// set html atrribute transparent
 		events[i].setAttribute("transparent","");
 	}
+	performance.mark("set transparency");
 }
 
 async function getEventsFromGCal(CalendarGrid) {
 	const authToken = await getAuthToken();
 	//const events = getEvents(CalendarGrid);
 	const calendarsToFetch = await getCalendarIDs();
+	performance.mark("got Calendars to fetch");
 	console.log(calendarsToFetch);
 
 	const { startDate, endDate } = getDateRange(CalendarGrid);

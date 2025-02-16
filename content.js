@@ -10,7 +10,8 @@ document.head.appendChild(style);
 // TODO: make customizable by user
 style.innerHTML = `
 [transparent] {
-	background-color:var(--gm3-sys-color-surface) !important;
+	background-color: rgba(var(--gm3-sys-color-surface), 255) !important;
+	backdrop-filter: blur(2px);
   	outline-style: dashed;
 	outline-offset: -3px;
 }

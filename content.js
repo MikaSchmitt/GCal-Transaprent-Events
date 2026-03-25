@@ -1,4 +1,6 @@
 // init
+const ext = typeof browser !== "undefined" ? browser : chrome;
+
 console.log("authenticating...")
 authenticate()
 
@@ -125,7 +127,7 @@ const targetNode = document.body;
 observer.observe(targetNode, config);
 
 async function authenticate() {
-	var items = await chrome.storage.local.get("authToken");
+	var items = await ext.storage.local.get("authToken");
 	if (items) {
 		var authToken = items.authToken;
 		var response = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${authToken}`, {}) //https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=
@@ -134,7 +136,7 @@ async function authenticate() {
 			if (responseJson["scope"] == 'https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/calendar.readonly')
 				return;
 	}
-	chrome.runtime.sendMessage({ type: "getAuthToken" });
+	ext.runtime.sendMessage({ type: "getAuthToken" });
 }
 
 async function maketransparent() {
@@ -205,7 +207,7 @@ async function getEventsFromGCal(CalendarGrid) {
 }
 
 async function getAuthToken() {
-	const items = await chrome.storage.local.get("authToken");
+	const items = await ext.storage.local.get("authToken");
 	const authToken = items.authToken;
 	return authToken;
 }

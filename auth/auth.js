@@ -1,6 +1,10 @@
+const ext = typeof browser !== "undefined" ? browser : chrome;
+
 var auth_url = 'https://accounts.google.com/o/oauth2/auth?';
 var client_id = '35905430505-4t6dea16au28vjtu3lac1dtj906kna5g.apps.googleusercontent.com';
-var redirect_url = chrome.identity.getRedirectURL();
+var redirect_url = ext.identity.getRedirectURL();
+
+console.log('OAuth redirect URI:', redirect_url);
 
 var auth_params = {
     client_id: client_id,
@@ -13,16 +17,69 @@ const url = new URLSearchParams(Object.entries(auth_params));
 url.toString();
 auth_url += url;
 
-chrome.identity.launchWebAuthFlow({url: auth_url, interactive: true}, function(responseUrl) { 
-    console.log(responseUrl);
-    var url;
+function launchWebAuthFlow(details) {
     try {
-        url = new URL(responseUrl);
+        const maybePromise = ext.identity.launchWebAuthFlow(details);
+        if (maybePromise && typeof maybePromise.then === "function") {
+            return maybePromise;
+        }
+    } catch (error) {
+        // Fall through to callback mode below.
+    }
+
+    return new Promise((resolve, reject) => {
+        ext.identity.launchWebAuthFlow(details, (responseUrl) => {
+            const runtimeError = ext.runtime && ext.runtime.lastError;
+            if (runtimeError) {
+                reject(new Error(runtimeError.message));
+                return;
+            }
+            resolve(responseUrl);
+        });
+    });
+}
+
+function storageSet(values) {
+    try {
+        const maybePromise = ext.storage.local.set(values);
+        if (maybePromise && typeof maybePromise.then === "function") {
+            return maybePromise;
+        }
+    } catch (error) {
+        // Fall through to callback mode below.
+    }
+
+    return new Promise((resolve, reject) => {
+        ext.storage.local.set(values, () => {
+            const runtimeError = ext.runtime && ext.runtime.lastError;
+            if (runtimeError) {
+                reject(new Error(runtimeError.message));
+                return;
+            }
+            resolve();
+        });
+    });
+}
+
+async function authenticate() {
+    try {
+        const responseUrl = await launchWebAuthFlow({ url: auth_url, interactive: true });
+        console.log(responseUrl);
+
+        const parsedUrl = new URL(responseUrl);
+        const token = new URLSearchParams(parsedUrl.hash.substring(1)).get('access_token');
+        await storageSet({ authToken: token });
+        close();
     } catch (error) {
         console.error(error);
-    }         
-    var token = new URLSearchParams(url.hash.substring(1)).get('access_token');
-    chrome.storage.local.set({ "authToken": token }, function(){
-        close();
-    });
-});
+        const msg = String(error && error.message ? error.message : error);
+        if (msg.includes('redirect_uri_mismatch') || msg.includes('Error 400')) {
+            alert(
+                'OAuth redirect_uri_mismatch. Add this URI to Google Cloud -> OAuth client -> Authorized redirect URIs:\n\n' +
+                redirect_url
+            );
+        }
+    }
+}
+
+authenticate();
